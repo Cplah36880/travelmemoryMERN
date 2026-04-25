@@ -1,0 +1,47 @@
+sudo apt update -y
+
+# Install Node.js
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Install Git
+sudo apt install git -y
+
+# Install Nginx
+sudo apt install nginx -y
+
+# Install PM2
+sudo npm install -g pm2
+git clone https://github.com/UnpredictablePrashant/TravelMemory.git
+cd TravelMemory
+cd backend
+npm install
+pm2 start index.js --name backend
+pm2 save
+pm2 startup
+Nginx Reverse Proxy Setup
+sudo nano /etc/nginx/sites-available/default
+server {
+    listen 80;
+    server_name _;
+
+    location /api/ {
+        proxy_pass http://localhost:3000/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+    }
+
+    location / {
+        root /var/www/frontend;
+        index index.html;
+        try_files $uri /index.html;
+    }
+}
+sudo nginx -t
+sudo systemctl restart nginx
+Security Configuration
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw enable
